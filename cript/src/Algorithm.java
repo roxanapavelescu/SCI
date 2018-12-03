@@ -1,6 +1,8 @@
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -15,6 +17,82 @@ public class Algorithm {
 
     private static SecretKeySpec secretKey;
     private static byte[] key;
+
+
+
+    private BigInteger n, d, e;
+
+    private int bitlen = 1024;
+
+    /** Create an instance that can encrypt using someone elses public key. */
+    public Algorithm(BigInteger newn, BigInteger newe) {
+        n = newn;
+        e = newe;
+    }
+
+    /** Create an instance that can both encrypt and decrypt. */
+    public Algorithm(int bits) {
+        bitlen = bits;
+        SecureRandom r = new SecureRandom();
+        BigInteger p = new BigInteger(bitlen / 2, 100, r);
+        BigInteger q = new BigInteger(bitlen / 2, 100, r);
+        n = p.multiply(q);
+        BigInteger m = (p.subtract(BigInteger.ONE)).multiply(q
+                .subtract(BigInteger.ONE));
+        e = new BigInteger("3");
+        while (m.gcd(e).intValue() > 1) {
+            e = e.add(new BigInteger("2"));
+        }
+        d = e.modInverse(m);
+    }
+
+    /** Encrypt the given plaintext message. */
+    public synchronized String RSAencrypt(String message) {
+        return (new BigInteger(message.getBytes())).modPow(e, n).toString();
+    }
+
+    /** Encrypt the given plaintext message. */
+    public synchronized BigInteger RSAencrypt(BigInteger message) {
+        return message.modPow(e, n);
+    }
+
+    /** Decrypt the given ciphertext message. */
+    public synchronized String RSAdecrypt(String message) {
+        return new String((new BigInteger(message)).modPow(d, n).toByteArray());
+    }
+
+    /** Decrypt the given ciphertext message. */
+    public synchronized BigInteger RSAdecrypt(BigInteger message) {
+        return message.modPow(d, n);
+    }
+
+    /** Generate a new public and private key set. */
+    public synchronized void generateKeys() {
+        SecureRandom r = new SecureRandom();
+        BigInteger p = new BigInteger(bitlen / 2, 100, r);
+        BigInteger q = new BigInteger(bitlen / 2, 100, r);
+        n = p.multiply(q);
+        BigInteger m = (p.subtract(BigInteger.ONE)).multiply(q
+                .subtract(BigInteger.ONE));
+        e = new BigInteger("3");
+        while (m.gcd(e).intValue() > 1) {
+            e = e.add(new BigInteger("2"));
+        }
+        d = e.modInverse(m);
+    }
+
+    /** Return the modulus. */
+    public synchronized BigInteger getN() {
+        return n;
+    }
+
+    /** Return the public key. */
+    public synchronized BigInteger getE() {
+        return e;
+    }
+
+
+
 
 
 
@@ -133,6 +211,21 @@ public class Algorithm {
         System.out.println("-- Decrypted blowfish -----------");
         System.out.println("HEX:\t " + bytesToHex(message));
         System.out.println("PLAIN:\t " + new String(message));
+
+
+        System.out.println("Starting RSA");
+        Algorithm rsa = new Algorithm(1024);
+
+        String text1 = "howtodoinjava.com";
+        System.out.println("RSA Plaintext: " + text1);
+        BigInteger plaintext = new BigInteger(text1.getBytes());
+
+        BigInteger ciphertext1 = rsa.RSAencrypt(plaintext);
+        System.out.println("RSA Ciphertext: " + ciphertext1);
+        plaintext = rsa.RSAdecrypt(ciphertext1);
+
+        String text2 = new String(plaintext.toByteArray());
+        System.out.println("RSA Plaintext: " + text2);
 
 
 
