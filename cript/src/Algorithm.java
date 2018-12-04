@@ -68,6 +68,7 @@ public class Algorithm {
 
     /** Generate a new public and private key set. */
     public synchronized void generateKeys() {
+        long startTime = System.nanoTime();
         SecureRandom r = new SecureRandom();
         BigInteger p = new BigInteger(bitlen / 2, 100, r);
         BigInteger q = new BigInteger(bitlen / 2, 100, r);
@@ -79,6 +80,8 @@ public class Algorithm {
             e = e.add(new BigInteger("2"));
         }
         d = e.modInverse(m);
+        long estimatedTime = System.nanoTime() - startTime;
+        System.out.println("generateKeys " + estimatedTime);
     }
 
     /** Return the modulus. */
@@ -165,9 +168,15 @@ public class Algorithm {
         final String secretKey = "ssshhhhhhhhhhh!!!!";
 
         String originalString = "howtodoinjava.com";
+        long startTime = System.nanoTime();
         String encryptedString = Algorithm.AESencrypt(originalString, secretKey) ;
-        String decryptedString = Algorithm.AESdecrypt(encryptedString, secretKey) ;
+        long estimatedTime = System.nanoTime() - startTime;
+        System.out.println("AES encrypt " + estimatedTime);
 
+        startTime = System.nanoTime();
+        String decryptedString = Algorithm.AESdecrypt(encryptedString, secretKey) ;
+        estimatedTime = System.nanoTime() - startTime;
+        System.out.println("AES decrypt " + estimatedTime);
 
         System.out.println("Start of AES");
 
@@ -180,7 +189,7 @@ public class Algorithm {
 
 
         System.out.println("Start of Blowfish");
-
+        startTime = System.nanoTime();
         byte[] key	= "secret".getBytes();
         String IV  	= "12345678";
 
@@ -196,11 +205,14 @@ public class Algorithm {
         String out = null;
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, new javax.crypto.spec.IvParameterSpec(IV.getBytes()));
         byte[] encoding = cipher.doFinal(secret.getBytes());
+        estimatedTime = System.nanoTime() - startTime;
+        System.out.println("Blowfish encrypt " + estimatedTime);
 
         System.out.println("-- Encrypted Blowfish-----------");
         System.out.println("Base64:\t " + DatatypeConverter.printBase64Binary(encoding));
         System.out.println("HEX:\t " + bytesToHex(encoding));
 
+        startTime = System.nanoTime();
         // Decode Base64
         byte[] ciphertext = DatatypeConverter.parseBase64Binary(DatatypeConverter.printBase64Binary(encoding));
 
@@ -208,12 +220,16 @@ public class Algorithm {
         cipher.init(Cipher.DECRYPT_MODE, keySpec, new javax.crypto.spec.IvParameterSpec(IV.getBytes()));
         byte[] message = cipher.doFinal(ciphertext);
 
+        estimatedTime = System.nanoTime() - startTime;
+        System.out.println("Blowfish decrypt " + estimatedTime);
+
         System.out.println("-- Decrypted blowfish -----------");
         System.out.println("HEX:\t " + bytesToHex(message));
         System.out.println("PLAIN:\t " + new String(message));
 
 
         System.out.println("Starting RSA");
+        startTime = System.nanoTime();
         Algorithm rsa = new Algorithm(1024);
 
         String text1 = "howtodoinjava.com";
@@ -221,10 +237,15 @@ public class Algorithm {
         BigInteger plaintext = new BigInteger(text1.getBytes());
 
         BigInteger ciphertext1 = rsa.RSAencrypt(plaintext);
+        estimatedTime = System.nanoTime() - startTime;
+        System.out.println("RSA estimated " + estimatedTime);
+
         System.out.println("RSA Ciphertext: " + ciphertext1);
+        startTime = System.nanoTime();
         plaintext = rsa.RSAdecrypt(ciphertext1);
 
         String text2 = new String(plaintext.toByteArray());
+        estimatedTime = System.nanoTime() - startTime;
         System.out.println("RSA Plaintext: " + text2);
 
 
